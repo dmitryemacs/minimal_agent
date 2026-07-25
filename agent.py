@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import readline
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +15,21 @@ from api import OpenRouterClient, BASH_TOOL
 from tools import execute_bash
 
 SESSIONS_DIR = Path.home() / ".config" / "mini-agent" / "sessions"
+
+COMMANDS = ["/exit", "/clear", "/history", "/sessions", "/resume", "/new", "/auto"]
+
+
+def completer(text, state):
+    if not text.startswith("/"):
+        return None
+    options = [c for c in COMMANDS if c.startswith(text)]
+    if state < len(options):
+        return options[state]
+    return None
+
+
+readline.set_completer(completer)
+readline.parse_and_bind("tab: complete")
 
 
 def ensure_sessions_dir():
