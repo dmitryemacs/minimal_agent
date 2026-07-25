@@ -36,12 +36,14 @@ class OpenRouterClient:
             resp = requests.get(
                 f"{self.base_url}/models",
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=10,
+                timeout=30,
             )
             resp.raise_for_status()
             for m in resp.json().get("data", []):
                 if m.get("id") == self.model:
                     return m.get("context_length")
+        except KeyboardInterrupt:
+            raise
         except Exception:
             pass
         return None

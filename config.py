@@ -4,8 +4,17 @@ from pathlib import Path
 
 
 def load_dotenv():
-    env_path = Path(__file__).parent / ".env"
-    if not env_path.exists():
+    candidates = [
+        Path.cwd() / ".env",
+        Path.home() / ".config/mini-agent/.env",
+        Path.home() / ".env",
+    ]
+    env_path = None
+    for p in candidates:
+        if p.exists():
+            env_path = p
+            break
+    if env_path is None:
         return
     with open(env_path) as f:
         for line in f:
