@@ -29,6 +29,22 @@ class OpenRouterClient:
         self.api_key = config.API_KEY
         self.model = config.MODEL
         self.base_url = config.BASE_URL
+        self.max_context = self._fetch_max_context()
+
+    def _fetch_max_context(self):
+        try:
+            resp = requests.get(
+                f"{self.base_url}/models",
+                headers={"Authorization": f"Bearer {self.api_key}"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            for m in resp.json().get("data", []):
+                if m.get("id") == self.model:
+                    return m.get("context_length")
+        except Exception:
+            pass
+        return None
 
     def chat(self, messages, tools=None, stream=True):
         headers = {
@@ -80,6 +96,7 @@ class OpenRouterClient:
         content_parts = []
         tool_calls = {}
         finish_reason = None
+        usage = None
 
         for line in resp.iter_lines(decode_unicode=True):
             if not line or not line.startswith("data: "):
@@ -97,6 +114,9 @@ class OpenRouterClient:
             fr = choice.get("finish_reason")
             if fr:
                 finish_reason = fr
+
+            if chunk.get("usage"):
+                usage = chunk["usage"]
 
             if delta.get("content"):
                 text = delta["content"]
@@ -129,4 +149,4 @@ class OpenRouterClient:
         if finish_reason:
             message["finish_reason"] = finish_reason
 
-        return message
+        return message, usage
