@@ -17,6 +17,9 @@ class Agent:
         self.client = OpenRouterClient()
         self.messages = [{"role": "system", "content": config.SYSTEM_PROMPT}]
         self.auto_confirm = False
+        self.total_prompt_tokens = 0
+        self.total_completion_tokens = 0
+        self.total_tokens = 0
 
     def handle_tool_calls(self, tool_calls):
         results = []
@@ -42,7 +45,9 @@ class Agent:
         return results
 
     def run(self):
-        print(f"mini-agent | модель: {self.client.model}")
+        ctx = self.client.max_context
+        ctx_str = f" | контекст: {ctx:,}" if ctx else ""
+        print(f"mini-agent | модель: {self.client.model}{ctx_str}")
         print("Команды: /exit, /clear, /history\n")
 
         while True:
@@ -62,13 +67,22 @@ class Agent:
             self.messages.append({"role": "user", "content": user_input})
 
             while True:
-                response = self.client.chat(
+                response, usage = self.client.chat(
                     self.messages, tools=[BASH_TOOL], stream=True
                 )
                 if response is None:
                     print("Нет ответа от модели. Попробуйте снова.")
                     self.messages.pop()
                     break
+
+                if usage:
+                    self.total_prompt_tokens += usage.get("prompt_tokens", 0)
+                    self.total_completion_tokens += usage.get("completion_tokens", 0)
+                    self.total_tokens += usage.get("total_tokens", 0)
+                    ctx = self.client.max_context
+                    used = usage.get("prompt_tokens", 0)
+                    pct = f" ({used * 100 // ctx}% of {ctx:,})" if ctx else ""
+                    print(f"\033[90m[tokens: {used} in / {usage.get('completion_tokens', 0)} out | total: {self.total_tokens}{pct}]\033[0m")
 
                 self.messages.append(response)
 
