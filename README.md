@@ -43,10 +43,13 @@ MODEL=anthropic/claude-sonnet-4
 
 | Command | Description |
 |---|---|
-| `/exit` | Quit |
-| `/clear` | Clear conversation history |
+| `/exit` | Quit (saves session) |
+| `/clear` | Clear conversation, start new session |
 | `/history` | Show message history |
 | `/auto` | Toggle auto-confirm for commands |
+| `/sessions` | List saved sessions |
+| `/resume ID` | Resume a saved session |
+| `/new` | Save current session and start new |
 
 ## Building a Binary
 
