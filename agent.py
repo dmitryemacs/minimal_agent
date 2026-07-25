@@ -101,14 +101,18 @@ class Agent:
             self.messages = [{"role": "system", "content": config.SYSTEM_PROMPT}]
             print("История очищена.")
         elif cmd == "/history":
+            shown = False
             for msg in self.messages:
                 role = msg["role"]
                 if role == "system":
                     continue
-                content = msg.get("content", "")
+                content = msg.get("content") or ""
                 if content:
+                    shown = True
                     preview = content[:100].replace("\n", " ")
                     print(f"  [{role}] {preview}")
+            if not shown:
+                print("  (пусто)")
         elif cmd == "/auto":
             self.auto_confirm = not self.auto_confirm
             state = "вкл" if self.auto_confirm else "выкл"
